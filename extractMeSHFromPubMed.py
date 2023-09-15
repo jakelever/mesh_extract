@@ -31,12 +31,12 @@ def download_file_and_check_md5sum(url, local_filehandle):
 		expected_md5 = tf.file.read().decode().strip()
 		assert expected_md5.startswith('MD5(') and '=' in expected_md5
 		expected_md5 = expected_md5.split('=')[1].strip()
-		#print("expected:", expected_md5)
+		print("expected MD5:", expected_md5)
 
 	download_file(url, local_filehandle)
 	local_filehandle.seek(0)
 	got_md5 = hashlib.md5(local_filehandle.read()).hexdigest()
-	#print("got:", got_md5)
+	print("got MD5:", got_md5)
 
 	if expected_md5 != got_md5:
 		raise RuntimeError("MD5 of downloaded file doesn't match expected: %s != %s" % (expected_md5,got_md5))
@@ -281,7 +281,20 @@ def extract_mesh_from_pubmed(inFile,outFile):
 
 					mesh_headings.append(mesh_heading)
 					
-				document = {'pmid':pmid, 'publication_date':(pubYear,pubMonth,pubDay), 'mesh':mesh_headings}
+				journal_title_fields = elem.findall("./MedlineCitation/Article/Journal/Title")
+				journal_title_iso_fields = elem.findall(
+					"./MedlineCitation/Article/Journal/ISOAbbreviation"
+				)
+
+				journal_title, journal_iso_title = "", ""
+				assert len(journal_title_fields) <= 1, "Error with pmid=%s" % pmid
+				assert len(journal_title_iso_fields) <= 1, "Error with pmid=%s" % pmid
+				if journal_title_fields:
+					journal_title = journal_title_fields[0].text
+				if journal_title_iso_fields:
+					journal_iso_title = journal_title_iso_fields[0].text
+					
+				document = {'pmid':pmid, 'publication_date':(pubYear,pubMonth,pubDay), 'journal':journal_title, 'journal_abbrev':journal_iso_title, 'mesh':mesh_headings}
 				writer.write(document)
 				
 				# Important: clear the current element from memory to keep memory usage low
