@@ -299,7 +299,6 @@ def extract_mesh_from_pubmed(inFile,outFile):
 				
 				# Important: clear the current element from memory to keep memory usage low
 				elem.clear()
-		outF.write('</PubmedArticleSet>\n')
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Extract MeSH terms from a PubMed file given its URL")
